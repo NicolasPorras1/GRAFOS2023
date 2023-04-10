@@ -1,0 +1,233 @@
+<!-- NOMBRES: Nicolas Gonzalez
+              Nicolas Porras
+-->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.0/dist/chart.min.js"></script>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <title>Diana de Dardos</title>
+    <style>
+
+    body{
+      /*PATRON FONDO DE LA PAGINA*/
+      background-color: BurlyWood;
+      background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 6V5zM6 5v1H5z'/%3E%3C/g%3E%3C/svg%3E");
+
+      }
+      #canvas {
+        border: 10px groove rgb(255, 150, 0);
+        margin: 20px;
+      }
+      #stats-table {
+        margin: 10px;
+      }
+      th,
+      td {
+        padding: 5px;
+        background-color: rgb(250, 250, 150); border: 5px double rgb(200, 180, 0);
+        text-align: center;
+      }
+      th {
+        background-color: rgb(250, 200, 100); border: 5px double rgb(250, 150, 0);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- DIANA-->
+    <div style="display: flex; flex-direction: row">
+      <div>
+        <canvas id="canvas" width="400" height="400"></canvas>
+        <button id="throw-button">Lanzar dardos</button>
+      </div>
+      <div>
+        <canvas style="width: 100%; height: 480px" id="myChart"></canvas>
+      </div>
+    </div>
+    
+    <div> 
+      <canvas id="myChart"></canvas>
+    </div>
+    
+    <!-- TABLA-->
+    <table id="stats-table">
+      <thead>
+        <tr>
+          <th scope="col">m Simulaciones</th>
+          <th scope="col">Dardos lanzados</th>
+          <th scope="col">Dardos acertados en la diana</th>
+          <th scope="col">Dardos fallados en el cuadrado</th>
+          <th scope="col">Aproximación a Pi</th>
+        </tr>
+      </thead>
+      <tbody id="filas">
+        <tr>
+          <td>Total</td>
+          <td id="total-darts-thrown">0</td>
+          <td id="total-darts-inside-circle">0</td>
+          <td id="total-darts-outside">0</td>
+          <td id="pi-approximation">-</td>
+        </tr>
+      </tbody>
+    </table>
+  
+    <script>
+
+
+const data = [];
+const chart = document.getElementById("myChart");
+const PI = Math.PI;
+/*GRAFICO*/
+const myChart = new Chart(chart, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Aproximación de PI',
+      data: [],
+      borderColor: 'rgb(255, 99, 132)',
+      backgroundColor: 'red',
+      fill: false
+    }, {
+      label: 'Valor de PI',
+      data: Array(10).fill(PI),
+      borderColor: 'rgb(0, 0, 255)',
+      backgroundColor: 'blue',
+      fill: false
+    }]
+  },
+  options: {
+    responsive: true,
+    title: {
+      display: true,
+      text: 'Aproximación de PI'
+    },
+    color: 'black',
+    scales: {
+      xAxes: [{
+        display: true
+      }],
+      yAxes: [{
+        display: true,
+        ticks: {
+          beginAtZero: true,
+          suggestedMax: 4
+        }
+      }]
+    }
+  }
+});
+
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      const filas = document.getElementById("filas");
+      const throwButton = document.getElementById("throw-button");
+      const TotalDardosDentroLanzados =
+        document.getElementById("total-darts-thrown");
+      const TotalDardosDentrodeDiana = document.getElementById(
+        "total-darts-inside-circle"
+      );
+      const TotalDardosFueraDiana = document.getElementById(
+        "total-darts-outside"
+      );
+      const AproximacionDePI = document.getElementById("pi-approximation");
+      const RADIUS = canvas.width / 2;
+      const CENTER_X = canvas.width / 2;
+      const CENTER_Y = canvas.height / 2;
+      let TotalDardosLanzados = 0;
+      let DardosAcertadosDiana = 0;
+      let DardosFallados = 0;
+      let DardosFuera = 0;
+
+      
+      /*FUNCION DE LANZAR DARDOS*/
+
+      function TirarDardos() {
+        let DardosLanzados = 0;
+        let Acertados = 0;
+
+
+        /*AQUI MODIFICA CUANTOS DARDOS QUIERA LANZAR EL USUARIO, EN ESTE CASO USAMOS 200*/
+        for (let i = 0; i < 200; i++) {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height;
+          const distance = Math.sqrt((x - CENTER_X) ** 2 + (y - CENTER_Y) ** 2);
+          const hit = distance < RADIUS;
+
+          if (hit) {
+            Acertados++;
+            ctx.fillStyle = "MediumSeaGreen";
+            DardosAcertadosDiana++;
+          } else {
+            ctx.fillStyle = "Tomato";
+            DardosFuera++;
+          }
+
+          ctx.beginPath();
+          ctx.arc(x, y, 5, 0, Math.PI * 2);
+          ctx.fill();
+
+          DardosLanzados++;
+          TotalDardosLanzados++;
+        }
+        DardosFallados++;
+        let tableRow = document.getElementById("stats-table");
+        let row = tableRow.insertRow(-1);
+        let trys = row.insertCell(0);
+        let thrown_darts = row.insertCell(1);
+        let darts_inside = row.insertCell(2);
+        let darts_outside = row.insertCell(3);
+        let pi_aproximation = row.insertCell(4);
+        trys.innerHTML = DardosFallados;
+        thrown_darts.innerHTML = TotalDardosLanzados;
+        darts_inside.innerHTML = DardosAcertadosDiana;
+        darts_outside.innerHTML = TotalDardosLanzados - DardosAcertadosDiana;
+        pi_aproximation.innerHTML = 4 * (DardosAcertadosDiana / TotalDardosLanzados);
+
+        TotalDardosDentroLanzados.textContent = TotalDardosLanzados;
+        TotalDardosDentrodeDiana.textContent = DardosAcertadosDiana;
+        AproximacionDePI.textContent =
+          4 * (DardosAcertadosDiana / TotalDardosLanzados);
+        TotalDardosFueraDiana.textContent = DardosFuera;
+
+        data.push({
+  try: DardosFallados,
+  piAprox: 4 * (DardosAcertadosDiana / TotalDardosLanzados),
+});
+
+myChart.data.labels.push(DardosFallados);
+myChart.data.datasets[0].data.push(4 * (DardosAcertadosDiana / TotalDardosLanzados));
+myChart.update();
+
+    }
+
+      function init() {
+        ctx.fillStyle = "Khaki";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "MidnightBlue";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(CENTER_X, CENTER_Y, RADIUS, 0, Math.PI * 2);
+        ctx.stroke();
+
+        throwButton.addEventListener("click", TirarDardos);
+      }
+
+      init();
+
+      
+
+    </script>
+
+  
+  </body>
+ 
+</html>
